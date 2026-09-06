@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Right Now | Manifestalk</title>
+<style>
+  :root{
+    --cream:#F3ECDD;
+    --paper:#FBF8F1;
+    --ink:#2B1E12;
+    --walnut:#6E4A28;
+    --walnut-dark:#4A3018;
+    --gold:#B98D4F;
+    --gold-light:#E4C99A;
+    --moss:#55624A;
+    --serif: Georgia, 'Iowan Old Style', 'Times New Roman', serif;
+    --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:var(--cream);
+    color:var(--ink);
+    font-family:var(--sans);
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+  }
+  .device{
+    width:420px;
+    max-width:100%;
+    min-height:720px;
+    background:var(--paper);
+    border-radius:28px;
+    box-shadow:0 30px 60px -20px rgba(43,30,18,0.35);
+    overflow:hidden;
+    position:relative;
+    display:flex;
+    flex-direction:column;
+  }
+  .lang-toggle{
+    position:absolute;
+    top:18px;
+    right:18px;
+    z-index:10;
+    background:var(--cream);
+    border:1.5px solid var(--gold);
+    color:var(--walnut);
+    font-family:var(--sans);
+    font-weight:700;
+    font-size:12px;
+    letter-spacing:0.03em;
+    padding:7px 13px;
+    border-radius:999px;
+    cursor:pointer;
+  }
+  .lang-toggle:hover{background:var(--gold-light);}
+  .screen{
+    display:none;
+    flex-direction:column;
+    flex:1;
+    padding:40px 32px 32px;
+  }
+  .screen.active{display:flex;}
+
+  .eyebrow-mark{
+    display:flex; align-items:center; gap:10px; margin-bottom:auto;
+  }
+  .dandelion{width:26px;height:26px;flex-shrink:0;}
+  .brandname{
+    font-family:var(--serif);
+    letter-spacing:0.14em;
+    font-size:13px;
+    color:var(--walnut);
+  }
+
+  h1{
+    font-family:var(--sans);
+    font-weight:800;
+    font-size:38px;
+    line-height:1.05;
+    letter-spacing:-0.01em;
+    color:var(--ink);
+    margin:28px 0 16px;
+    max-width:11ch;
+  }
+  h2{
+    font-family:var(--sans);
+    font-weight:800;
+    font-size:26px;
+    line-height:1.05;
+    color:var(--ink);
+    margin-bottom:8px;
+  }
+  p.lead{
+    font-family:var(--serif);
+    font-size:16px;
+    line-height:1.55;
+    color:#4A3E30;
+    max-width:32ch;
+  }
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    background:var(--walnut);
+    color:var(--paper);
+    font-family:var(--sans);
+    font-weight:700;
+    font-size:15px;
+    padding:15px 22px;
+    border-radius:999px;
+    border:none;
+    cursor:pointer;
+    width:100%;
+    transition:background 0.2s ease, transform 0.15s ease;
+  }
+  .btn:hover{background:var(--walnut-dark); transform:translateY(-1px);}
+  .btn.ghost{
+    background:transparent;
+    color:var(--walnut);
+    border:1.5px solid var(--walnut);
+  }
+  .btn.ghost:hover{background:rgba(110,74,40,0.06); transform:none;}
+  .btn-row{display:flex; flex-direction:column; gap:10px; margin-top:20px;}
+  .link-back{
+    font-family:var(--sans); font-size:13px; color:var(--moss);
+    background:none;border:none;cursor:pointer;text-align:left;
+    padding:0; margin-bottom:18px; display:flex; align-items:center; gap:6px;
+  }
+
+  .theme-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+    margin-top:22px;
+  }
+  .theme-card{
+    background:var(--cream);
+    border:1.5px solid transparent;
+    border-radius:18px;
+    padding:16px 14px;
+    cursor:pointer;
+    text-align:left;
+    transition:border-color 0.15s ease, background 0.15s ease;
+  }
+  .theme-card:hover{border-color:var(--gold);}
+  .theme-card .badge{
+    width:40px;height:40px;border-radius:50%;
+    background:var(--walnut);
+    display:flex;align-items:center;justify-content:center;
+    margin-bottom:12px;
+  }
+  .theme-card .badge svg{width:20px;height:20px;stroke:var(--gold-light);}
+  .theme-card .t-name{font-family:var(--sans);font-weight:700;font-size:14.5px;color:var(--ink);}
+  .theme-card .t-sub{font-family:var(--serif);font-size:12px;color:var(--moss);margin-top:2px;}
+
+  #draw{align-items:center; text-align:center;}
+  .card-stage{
+    width:220px;height:300px;
+    margin:18px auto 26px;
+    perspective:1200px;
+  }
+  .card-inner{
+    width:100%;height:100%;
+    position:relative;
+    transition:transform 0.9s cubic-bezier(.2,.8,.2,1);
+    transform-style:preserve-3d;
+    cursor:pointer;
+  }
+  .card-inner.flipped{transform:rotateY(180deg);}
+  .card-face{
+    position:absolute; inset:0;
+    border-radius:16px;
+    backface-visibility:hidden;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 18px 30px -12px rgba(43,30,18,0.4);
+  }
+  .card-back{
+    background:
+      radial-gradient(circle at 30% 20%, rgba(255,255,255,0.08), transparent 40%),
+      var(--walnut);
+  }
+  .card-back .dot-field{width:70px;height:70px;opacity:0.55;}
+  .card-front{
+    background:var(--paper);
+    transform:rotateY(180deg);
+    flex-direction:column;
+    padding:18px;
+  }
+  .card-front .art{width:100%;height:56%;border-radius:10px;overflow:hidden;margin-bottom:12px;background:var(--cream);}
+  .card-front .art svg{width:100%;height:100%;}
+  .card-front .art img{width:100%;height:100%;object-fit:cover;display:block;}
+  .card-front .theme-tag{
+    font-family:var(--sans);font-size:11px;font-weight:700;
+    color:var(--walnut); letter-spacing:0.04em;
+  }
+  .card-front .card-title{
+    font-family:var(--sans);font-weight:800;font-size:17px;color:var(--ink);margin-top:2px;
+  }
+  .tap-hint{font-family:var(--serif);font-size:13px;color:var(--moss);font-style:italic;}
+
+  .reveal-block{display:none; margin-top:4px; text-align:left; width:100%;}
+  .reveal-block.show{display:block;}
+  .reveal-block .q{
+    font-family:var(--serif); font-size:17px; line-height:1.5; color:var(--ink);
+    border-left:3px solid var(--gold); padding-left:14px; margin-bottom:20px;
+  }
+
+  textarea{
+    width:100%; min-height:80px; border-radius:14px; border:1.5px solid #E4D9C2;
+    background:var(--cream); padding:14px; font-family:var(--serif); font-size:14px;
+    color:var(--ink); resize:none;
+  }
+  textarea:focus{outline:none; border-color:var(--gold);}
+  .skip{
+    font-family:var(--sans); font-size:12.5px; color:var(--moss);
+    text-align:center; background:none; border:none; cursor:pointer; margin-top:12px;
+  }
+
+  #reflect .tag{
+    font-family:var(--sans); font-size:11px; font-weight:700; color:var(--gold);
+    letter-spacing:0.05em; margin-bottom:10px;
+  }
+  .reflection-text{
+    font-family:var(--serif); font-size:19px; line-height:1.6; color:var(--ink);
+    margin-bottom:28px;
+  }
+  .reflection-card{
+    background:var(--walnut); color:var(--paper); border-radius:18px; padding:22px;
+    margin-bottom:22px;
+  }
+  .reflection-card .reflection-text{color:var(--gold-light); margin-bottom:0;}
+
+  #cta{align-items:flex-start;}
+  .cta-block{
+    background:var(--cream); border-radius:16px; padding:18px; margin-bottom:12px;
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+  }
+  .cta-block .l-title{font-family:var(--sans);font-weight:700;font-size:14px;color:var(--ink);}
+  .cta-block .l-sub{font-family:var(--serif);font-size:12.5px;color:var(--moss);margin-top:2px;}
+  .mini-btn{
+    font-family:var(--sans); font-size:12.5px; font-weight:700; color:var(--paper);
+    background:var(--walnut); border:none; border-radius:999px; padding:9px 16px; cursor:pointer;
+    white-space:nowrap;
+  }
+</style>
+</head>
+<body>
+
+<div class="device">
+  <button class="lang-toggle" id="langToggle" onclick="toggleLang()">EN</button>
+
+  <div class="screen active" id="landing">
+    <div class="eyebrow-mark">
+      <svg class="dandelion" viewBox="0 0 40 40" fill="none">
+        <circle cx="20" cy="20" r="2.4" fill="#6E4A28"/>
+        <g stroke="#6E4A28" stroke-width="1.1">
+          <line x1="20" y1="20" x2="20" y2="6"/><line x1="20" y1="20" x2="30" y2="10"/>
+          <line x1="20" y1="20" x2="34" y2="20"/><line x1="20" y1="20" x2="30" y2="30"/>
+          <line x1="20" y1="20" x2="20" y2="34"/><line x1="20" y1="20" x2="10" y2="30"/>
+          <line x1="20" y1="20" x2="6" y2="20"/><line x1="20" y1="20" x2="10" y2="10"/>
+        </g>
+        <g fill="#B98D4F">
+          <circle cx="20" cy="5" r="1.6"/><circle cx="31" cy="9" r="1.3"/>
+          <circle cx="35" cy="20" r="1.6"/><circle cx="31" cy="31" r="1.3"/>
+          <circle cx="20" cy="35" r="1.6"/><circle cx="9" cy="31" r="1.3"/>
+          <circle cx="5" cy="20" r="1.6"/><circle cx="9" cy="9" r="1.3"/>
+        </g>
+      </svg>
+      <span class="brandname">MANIFESTALK</span>
+    </div>
+
+    <h1 data-i18n="landingTitle"></h1>
+    <p class="lead" data-i18n="landingLead"></p>
+
+    <div style="margin-top:auto;">
+      <button class="btn" data-i18n="landingCta" onclick="go('theme')"></button>
+      <p style="font-family:var(--serif);font-size:12px;color:var(--moss);text-align:center;margin-top:12px;" data-i18n="landingNote"></p>
+    </div>
+  </div>
+
+  <div class="screen" id="theme">
+    <button class="link-back" onclick="go('landing')">&larr; <span data-i18n="themeBack"></span></button>
+    <h2 data-i18n="themeHeading"></h2>
+    <p class="lead" style="font-size:14px;" data-i18n="themeSub"></p>
+
+    <div class="theme-grid">
+      <div class="theme-card" onclick="pickTheme('Mindfulness')">
+        <div class="badge"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><circle cx="12" cy="7" r="2.4"/><path d="M12 9.4v5.5M8 21l1.6-4.5h4.8L16 21M9 14l-3 2M15 14l3 2"/></svg></div>
+        <div class="t-name">Mindfulness</div>
+        <div class="t-sub">Right Here Right Now</div>
+      </div>
+      <div class="theme-card" onclick="pickTheme('Journey')">
+        <div class="badge"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><circle cx="12" cy="6" r="2"/><path d="M12 8v3l-3 3v6M12 11l3 3v6M6 17h3M15 17h3"/></svg></div>
+        <div class="t-name">Journey</div>
+        <div class="t-sub">What If...</div>
+      </div>
+      <div class="theme-card" onclick="pickTheme('Masterpiece')">
+        <div class="badge"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><rect x="9" y="4" width="6" height="10" rx="1"/><path d="M6 20c1-3 3-4 6-4s5 1 6 4"/></svg></div>
+        <div class="t-name">Masterpiece</div>
+        <div class="t-sub">My Stage, My Show</div>
+      </div>
+      <div class="theme-card" onclick="pickTheme('Identity')">
+        <div class="badge"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><path d="M12 3l2.4 4.2L19 8l-3.3 3 0.9 4.7L12 13.8 7.4 15.7 8.3 11 5 8l4.6-0.8z"/></svg></div>
+        <div class="t-name">Identity</div>
+        <div class="t-sub">One Day Heroes</div>
+      </div>
+      <div class="theme-card" onclick="pickTheme('Personality')">
+        <div class="badge"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><circle cx="12" cy="12" r="8"/><path d="M9 10c.5-1 1.5-1.5 3-1.5S14.5 9 15 10M9 15c.5 1 1.5 1.5 3 1.5s2.5-.5 3-1.5"/></svg></div>
+        <div class="t-name">Personality</div>
+        <div class="t-sub">Reality Bites</div>
+      </div>
+      <div class="theme-card" onclick="pickTheme('Potentiality')">
+        <div class="badge"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><rect x="6" y="3" width="12" height="18" rx="2"/><path d="M9 3v18"/></svg></div>
+        <div class="t-name">Potentiality</div>
+        <div class="t-sub">Mirror on the Wall</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="screen" id="draw">
+    <button class="link-back" onclick="go('theme')">&larr; <span data-i18n="drawBack"></span></button>
+    <h2 id="draw-heading" style="text-align:center;">Mindfulness</h2>
+    <p class="lead" style="text-align:center; margin:0 auto;" data-i18n="drawInstruction"></p>
+
+    <div class="card-stage">
+      <div class="card-inner" id="cardInner" onclick="flipCard()">
+        <div class="card-face card-back">
+          <svg class="dot-field" viewBox="0 0 40 40" fill="none">
+            <circle cx="20" cy="20" r="2" fill="#E4C99A"/>
+            <g stroke="#E4C99A" stroke-width="0.8">
+              <line x1="20" y1="20" x2="20" y2="6"/><line x1="20" y1="20" x2="30" y2="10"/>
+              <line x1="20" y1="20" x2="34" y2="20"/><line x1="20" y1="20" x2="30" y2="30"/>
+              <line x1="20" y1="20" x2="20" y2="34"/><line x1="20" y1="20" x2="10" y2="30"/>
+              <line x1="20" y1="20" x2="6" y2="20"/><line x1="20" y1="20" x2="10" y2="10"/>
+            </g>
+          </svg>
+        </div>
+        <div class="card-face card-front">
+          <div class="art" id="cardArt"></div>
+          <div class="theme-tag" id="cardTag">MINDFULNESS</div>
+          <div class="card-title" id="cardTitle">Right Here Right Now</div>
+        </div>
+      </div>
+    </div>
+
+    <p class="tap-hint"><span>&larr;</span> <span id="tapHintText" data-i18n="tapHint"></span></p>
+
+    <div class="reveal-block" id="revealBlock">
+      <p class="q" id="reflectQ"></p>
+      <textarea id="reasonInput"></textarea>
+      <div class="btn-row">
+        <button class="btn" data-i18n="seeReflection" onclick="go('reflect')"></button>
+      </div>
+      <button class="skip" data-i18n="skipReflection" onclick="go('reflect')"></button>
+    </div>
+  </div>
+
+  <div class="screen" id="reflect">
+    <div class="tag" data-i18n="reflectTag"></div>
+    <div class="reflection-card">
+      <p class="reflection-text" id="reflectionText"></p>
+    </div>
+    <p style="font-family:var(--serif);font-size:13px;color:var(--moss);margin-bottom:auto;" data-i18n="reflectFootnote"></p>
+    <button class="btn" data-i18n="continueBtn" onclick="go('cta')"></button>
+  </div>
+
+  <div class="screen" id="cta">
+    <h2 data-i18n="ctaHeading"></h2>
+    <p class="lead" style="margin-bottom:24px;" data-i18n="ctaLead"></p>
+
+    <div class="cta-block">
+      <div>
+        <div class="l-title" data-i18n="cta1Title"></div>
+        <div class="l-sub" data-i18n="cta1Sub"></div>
+      </div>
+      <button class="mini-btn" data-i18n="cta1Btn"></button>
+    </div>
+    <div class="cta-block">
+      <div>
+        <div class="l-title" data-i18n="cta2Title"></div>
+        <div class="l-sub" data-i18n="cta2Sub"></div>
+      </div>
+      <button class="mini-btn" data-i18n="cta2Btn"></button>
+    </div>
+    <div class="cta-block">
+      <div>
+        <div class="l-title" data-i18n="cta3Title"></div>
+        <div class="l-sub" data-i18n="cta3Sub"></div>
+      </div>
+      <button class="mini-btn" data-i18n="cta3Btn"></button>
+    </div>
+
+    <button class="btn ghost" style="margin-top:auto;" data-i18n="ctaAgain" onclick="go('landing')"></button>
+  </div>
+
+</div>
+
+<script>
+const i18n = {
+  id: {
+    landingTitle: "Tarik satu kartu, hari ini.",
+    landingLead: "Versi singkat dari sesi mindfulness Manifestalk. Pilih satu tema, tarik satu kartu, dan lihat apa yang muncul.",
+    landingCta: "Mulai, pilih tema",
+    landingNote: "2 menit, tanpa perlu daftar",
+    themeBack: "Kembali",
+    themeHeading: "Pilih satu tema",
+    themeSub: "Setiap tema membawa satu jenis pertanyaan reflektif.",
+    drawBack: "Ganti tema",
+    drawInstruction: "Ketuk kartu untuk membaliknya.",
+    tapHint: "ketuk untuk membalik",
+    reasonPlaceholder: "Tulis alasanmu di sini (opsional)",
+    seeReflection: "Lihat refleksi",
+    skipReflection: "Lewati, langsung lihat refleksi",
+    reflectTag: "REFLEKSI UNTUKMU",
+    reflectFootnote: "Ini baru secuil dari apa yang biasanya dibahas lebih dalam saat sesi bersama fasilitator.",
+    continueBtn: "Lanjut",
+    ctaHeading: "Ini baru permulaan",
+    ctaLead: "Sesi asli Manifestalk membawa refleksi ini lebih jauh, bersama tim dan fasilitator bersertifikat.",
+    cta1Title: "Ajak timmu coba sesi asli",
+    cta1Sub: "Chat via WhatsApp",
+    cta1Btn: "Chat",
+    cta2Title: "Ikuti @manifestalk.official",
+    cta2Sub: "Tips mindfulness mingguan",
+    cta2Btn: "Follow",
+    cta3Title: "Simpan refleksimu",
+    cta3Sub: "Kirim ke email",
+    cta3Btn: "Simpan",
+    ctaAgain: "Tarik kartu lagi"
+  },
+  en: {
+    landingTitle: "Draw one card, today.",
+    landingLead: "A short version of the Manifestalk mindfulness session. Pick a theme, draw a card, and see what comes up.",
+    landingCta: "Start, pick a theme",
+    landingNote: "2 minutes, no signup needed",
+    themeBack: "Back",
+    themeHeading: "Choose one theme",
+    themeSub: "Each theme carries a different reflective question.",
+    drawBack: "Change theme",
+    drawInstruction: "Tap the card to flip it.",
+    tapHint: "tap to flip",
+    reasonPlaceholder: "Write your reason here (optional)",
+    seeReflection: "See reflection",
+    skipReflection: "Skip, go straight to reflection",
+    reflectTag: "A REFLECTION FOR YOU",
+    reflectFootnote: "This is just a glimpse of what usually gets explored further in a session with a facilitator.",
+    continueBtn: "Continue",
+    ctaHeading: "This is just the start",
+    ctaLead: "A real Manifestalk session takes this reflection further, together with the team and certified facilitators.",
+    cta1Title: "Bring your team to a real session",
+    cta1Sub: "Chat via WhatsApp",
+    cta1Btn: "Chat",
+    cta2Title: "Follow @manifestalk.official",
+    cta2Sub: "Weekly mindfulness tips",
+    cta2Btn: "Follow",
+    cta3Title: "Save your reflection",
+    cta3Sub: "Send to email",
+    cta3Btn: "Save",
+    ctaAgain: "Draw another card"
+  }
+};
+
+function ph(id){ return `https://images.unsplash.com/${id}?auto=format&fit=crop&w=500&q=70`; }
+// Foto realistis via Unsplash, dipakai langsung sebagai <img>.
+// Catatan: butuh koneksi internet saat dibuka (baik lokal maupun setelah dihosting).
+const photoUnsplashIds = {
+  'Mindfulness': ['photo-1506126613408-eca07ce68773','photo-1522075782449-e45a34f1ddfb','photo-1499728603263-13726abce5fd'],
+  'Journey': ['photo-1592859600972-1b0834d83747','photo-1621960531176-9e4894d9adf8','photo-1626436808209-c5093d1a0f75'],
+  'Masterpiece': ['photo-1576514129883-2f1d47a65da6','photo-1471877325906-aee7c2240b5f','photo-1558620013-a08999547a36'],
+  'Identity': ['photo-1592530392525-9d8469678dac','photo-1637419450536-378d5457abb8','photo-1633158834806-766387547d2c'],
+  'Personality': ['photo-1558470598-a5dda9640f68','photo-1543857778-c4a1a3e0b2eb','photo-1564951434112-64d74cc2a2d7'],
+  'Potentiality': ['photo-1656797590428-653803a957fd','photo-1688650963441-a4ce8fa08d50','photo-1526412039843-32a68b91c560']
+};
+
+const themeArt = {
+  'Mindfulness': [
+    `<svg viewBox="0 0 124 100" preserveAspectRatio="none">
+      <defs><linearGradient id="gMindSky1" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#F3ECDD"/><stop offset="1" stop-color="#E4C99A"/>
+      </linearGradient></defs>
+      <rect width="124" height="100" fill="url(#gMindSky1)"/>
+      <circle cx="62" cy="68" r="30" fill="#B98D4F" opacity="0.85"/>
+      <circle cx="62" cy="68" r="30" fill="none" stroke="#6E4A28" stroke-width="1"/>
+      <line x1="0" y1="80" x2="124" y2="80" stroke="#6E4A28" stroke-width="1.5"/>
+    </svg>`,
+    `<svg viewBox="0 0 124 100" preserveAspectRatio="none">
+      <rect width="124" height="100" fill="#EFE6D2"/>
+      <circle cx="40" cy="30" r="16" fill="none" stroke="#B98D4F" stroke-width="1.5"/>
+      <circle cx="40" cy="30" r="8" fill="#6E4A28"/>
+      <line x1="0" y1="72" x2="124" y2="60" stroke="#6E4A28" stroke-width="1.5"/>
+    </svg>`,
+    `<svg viewBox="0 0 124 100" preserveAspectRatio="none">
+      <rect width="124" height="100" fill="#E4C99A"/>
+      <path d="M0 60 Q62 40 124 60 L124 100 L0 100 Z" fill="#6E4A28" opacity="0.55"/>
+    </svg>`
+  ],
+  'Journey': [
+    `<svg viewBox="0 0 124 100" preserveAspectRatio="none">
+      <rect width="124" height="100" fill="#E7E2D0"/>
+      <path d="M8 88 Q45 92 62 60 Q79 28 116 14" stroke="#6E4A28" stroke-width="2.5" fill="none"/>
+      <circle cx="8" cy="88" r="4" fill="#A6A28E"/>
+      <circle cx="62" cy="60" r="5.5" fill="#6E4A28"/>
+      <circle cx="116" cy="14" r="4" fill="#B98D4F"/>
+    </svg>`,
+    `<svg viewBox="0 0 124 100" preserveAspectRatio="none">
+      <rect width="124" height="100" fill="#EDE7D5"/>
+      <path d="M20 100 L50 20 L80 100 Z" fill="#6E4A28" opacity="0.4"/>
+      <path d="M60 100 L95 40 L124 100 Z" fill="#B98D4F" opacity="0.5"/>
+    </svg>`,
+    `<svg viewBox="0 0 124 100" preserveAspectRatio="none">
+      <rect width="124" height="100" fill="#E7E2D0"/>
+      <path d="M0 20 Q62 0 124 20" stroke="#6E4A28" stroke-width="2" fill="none"/>
+      <path d="M0 50 Q62 30 124 50" stroke="#B98D4F" stroke-width="2" fill="none"/>
+      <path d="M0 80 Q62 60 124 80" stroke="#6E4A28" stroke-width="2" fill="none" opacity="0.5"/>
+    </svg>`
+  ],
+  'Masterpiece': [
+    `<svg viewBox="0 0 124 100" preserveAspectRatio="none">
+      <defs><linearGradient id="gStageLight1" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#E4C99A" stop-opacity="0.9"/><stop offset="1" stop-color="#E4C99A" stop-opacity="0"/>
+      </linearGradient></defs>
+      <rect width="124" height="100" fill="#2B1E12"/>
+      <polygon points="52,0 72,0 92,88 32,88" fill="url(#gStageLight1)"/>
+      <rect x="0" y="88" width="124" height="12" fill="#4A3018"/>
+      <rect x="58" y="70" width="8" height="18" fill="#6E4A28"/>
+      <circle cx="62" cy="62" r="7" fill="#6E4A28"/>
+    </svg>`,
+    `<svg viewBox="0 0 124 100" preserveAspectRatio="none">
+      <rect width="124" height="100" fill="#211812"/>
+      <circle cx="62" cy="45" r="35" fill="#E4C99A" opacity="0.25"/>
+      <circle cx="62" cy="45" r="18" fill="#E4C99A" opacity="0.5"/>
+      <rect x="0" y="90" width="124" height="10" fill="#4A3018"/>
+    </svg>`,
+    `<svg viewBox="0 0 124 100" preserveAspectRatio="none">
+      <rect width="124" height="100" fill="#3A2A18"/>
+      <rect x="10" y="0" width="18" height="100" fill="#211812" opacity="0.6"/>
+      <rect x="96" y="0" width="18" height="100" fill="#211812" opacity="0.6"/>
+      <circle cx="62" cy="50" r="14" fill="#E4C99A" opacity="0.7"/>
+    </svg>`
+  ],
+  'Identity': [
+    `<svg viewBox="0 0 124 100" preserveAspectRatio="none">
+      <rect width="124" height="100" fill="#EFE3CB"/>
+      <g stroke="#B98D4F" stroke-width="1.2" opacity="0.6">
+        <line x1="62" y1="50" x2="62" y2="10"/><line x1="62" y1="50" x2="92" y2="20"/>
+        <line x1="62" y1="50" x2="102" y2="50"/><line x1="62" y1="50" x2="92" y2="80"/>
+        <line x1="62" y1="50" x2="62" y2="90"/><line x1="62" y1="50" x2="32" y2="80"/>
+        <line x1="62" y1="50" x2="22" y2="50"/><line x1="62" y1="50" x2="32" y2="20"/>
+      </g>
+      <path d="M62 28l6.5 13 14.5 2.1-10.5 10.2 2.5 14.4L62 60.5l-13 7.2 2.5-14.4-10.5-10.2 14.5-2.1z" fill="#6E4A28"/>
+    </svg>`,
+    `<svg viewBox="0 0 124 100" preserveAspectRatio="none">
+      <rect width="124" height="100" fill="#E4C99A"/>
+      <circle cx="62" cy="50" r="38" fill="none" stroke="#6E4A28" stroke-width="2" opacity="0.4"/>
+      <circle cx="62" cy="50" r="24" fill="none" stroke="#6E4A28" stroke-width="2" opacity="0.6"/>
+      <circle cx="62" cy="50" r="10" fill="#6E4A28"/>
+    </svg>`,
+    `<svg viewBox="0 0 124 100" preserveAspectRatio="none">
+      <rect width="124" height="100" fill="#EFE3CB"/>
+      <path d="M62 15 L74 45 L106 45 L80 63 L90 95 L62 75 L34 95 L44 63 L18 45 L50 45 Z" fill="#B98D4F"/>
+    </svg>`
+  ],
+  'Personality': [
+    `<svg viewBox="0 0 124 100" preserveAspectRatio="none">
+      <rect width="124" height="100" fill="#EFEAD9"/>
+      <path d="M30 70c-8-18 2-38 24-42 20-3.5 34 8 38 24 3 13-5 24-18 30-16 7.5-38-1-44-12z" fill="#6E4A28" opacity="0.9"/>
+      <path d="M50 30c14-4 30 2 36 16 5 12 0 22-8 28" fill="none" stroke="#B98D4F" stroke-width="2"/>
+      <circle cx="88" cy="26" r="5" fill="#B98D4F"/>
+    </svg>`,
+    `<svg viewBox="0 0 124 100" preserveAspectRatio="none">
+      <rect width="124" height="100" fill="#E9E1CC"/>
+      <circle cx="40" cy="40" r="22" fill="#6E4A28" opacity="0.7"/>
+      <circle cx="80" cy="60" r="26" fill="#B98D4F" opacity="0.7"/>
+    </svg>`,
+    `<svg viewBox="0 0 124 100" preserveAspectRatio="none">
+      <rect width="124" height="100" fill="#EDE4CE"/>
+      <path d="M10 90 Q40 10 70 90 Q90 30 114 90" stroke="#6E4A28" stroke-width="3" fill="none"/>
+    </svg>`
+  ],
+  'Potentiality': [
+    `<svg viewBox="0 0 124 100" preserveAspectRatio="none">
+      <rect width="124" height="100" fill="#EFE6D2"/>
+      <rect x="38" y="8" width="48" height="84" rx="4" fill="none" stroke="#6E4A28" stroke-width="2"/>
+      <rect x="41" y="11" width="21" height="78" fill="#E4C99A" opacity="0.7"/>
+      <rect x="62" y="11" width="21" height="78" fill="#6E4A28" opacity="0.15"/>
+      <line x1="62" y1="8" x2="62" y2="92" stroke="#B98D4F" stroke-width="1.5"/>
+    </svg>`,
+    `<svg viewBox="0 0 124 100" preserveAspectRatio="none">
+      <rect width="124" height="100" fill="#E4C99A"/>
+      <ellipse cx="62" cy="50" rx="30" ry="42" fill="none" stroke="#6E4A28" stroke-width="2"/>
+      <ellipse cx="62" cy="50" rx="30" ry="42" fill="#EFE6D2" opacity="0.5"/>
+    </svg>`,
+    `<svg viewBox="0 0 124 100" preserveAspectRatio="none">
+      <rect width="124" height="100" fill="#EDE7D5"/>
+      <circle cx="62" cy="50" r="34" fill="none" stroke="#6E4A28" stroke-width="2"/>
+      <circle cx="62" cy="50" r="34" fill="url(#gMindSky1)" opacity="0.4"/>
+    </svg>`
+  ]
+};
+const lastShownIndex = {};
+const themeMeta = {
+  'Mindfulness': {sub:'Right Here Right Now', q:{id:'"Kemungkinan apa yang akan Anda pilih untuk dikembangkan?"', en:'"What possibility would you choose to develop?"'}},
+  'Journey': {sub:'What If...', q:{id:'"Pola apa yang akan Anda ubah?"', en:'"What pattern would you change?"'}},
+  'Masterpiece': {sub:'My Stage My Story My Show', q:{id:'"Karya apa yang akan Anda ciptakan?"', en:'"What work would you create?"'}},
+  'Identity': {sub:'One Day Heroes', q:{id:'"Kekuatan apa yang akan dipilih sebagai superpower Anda?"', en:'"What strength would you choose as your superpower?"'}},
+  'Personality': {sub:'Reality Bites', q:{id:'"Realita seperti apa yang akan Anda pilih?"', en:'"What kind of reality would you choose?"'}},
+  'Potentiality': {sub:'Mirror Mirror on the Wall', q:{id:'"Hal apa yang akan Anda ubah untuk menjadi lebih baik lagi?"', en:'"What would you change to become even better?"'}}
+};
+const reflectionVariations = {
+  'Mindfulness': {
+    id: [
+      '"Kamu memilih untuk melihat momen ini apa adanya, bukan lewat apa yang sudah terjadi atau yang mungkin terjadi nanti. Itu sendiri sudah jadi bentuk kesadaran yang jarang orang sempat latih."',
+      '"Ada jeda kecil sebelum kamu menjawab tadi. Jeda itu sering jadi ruang paling jujur, tempat pikiran belum sempat menyusun alasan."',
+      '"Hadir penuh di satu momen bukan berarti berhenti memikirkan apa pun, tapi memilih apa yang layak dipikirkan sekarang."'
+    ],
+    en: [
+      '"You chose to see this moment as it is, not through what already happened or what might happen next. That alone is a kind of awareness most people rarely get to practice."',
+      '"There was a small pause before you answered. That pause is often the most honest space, before the mind has time to build reasons."',
+      '"Being fully present in one moment does not mean you stop thinking altogether, it means choosing what deserves your attention right now."'
+    ]
+  },
+  'Journey': {
+    id: [
+      '"Pola yang kamu sebutkan tadi mungkin sudah lama ada, tapi menyadarinya adalah langkah pertama sebelum benar-benar mengubahnya."',
+      '"Perjalanan yang berarti jarang berbentuk garis lurus. Kamu sedang berada di salah satu titik belok yang justru penting."',
+      '"Apa yang terasa berat sekarang bisa jadi bagian dari rute yang memang harus dilewati, bukan tanda kamu salah arah."'
+    ],
+    en: [
+      '"The pattern you named may have been there for a while, but noticing it is the first step before actually changing it."',
+      '"A meaningful journey rarely moves in a straight line. You are standing at one of those turning points that matter."',
+      '"What feels heavy right now might just be part of the route you were meant to take, not a sign you are lost."'
+    ]
+  },
+  'Masterpiece': {
+    id: [
+      '"Karya yang kamu bayangkan tadi mencerminkan apa yang selama ini kamu anggap penting, meski belum tentu kamu sadari."',
+      '"Setiap karya dimulai dari versi yang belum sempurna. Yang kamu pikirkan barusan bisa jadi draf pertamanya."',
+      '"Panggung dan cerita yang kamu pilih menunjukkan bagian dari dirimu yang ingin lebih sering ditampilkan."'
+    ],
+    en: [
+      '"The work you imagined reflects what you have quietly considered important, even if you had not fully noticed it."',
+      '"Every work starts as an unfinished version. What you just thought of could be its very first draft."',
+      '"The stage and story you chose reveal a part of yourself that wants to be shown more often."'
+    ]
+  },
+  'Identity': {
+    id: [
+      '"Kekuatan yang kamu pilih tadi mungkin sudah lama kamu pakai, hanya belum kamu sebut sebagai kekuatan."',
+      '"Menjadi pahlawan sehari-hari sering kali bukan soal hal besar, tapi soal konsisten memilih hal kecil yang benar."',
+      '"Apa yang kamu anggap biasa saja pada dirimu, bisa jadi hal yang paling dibutuhkan orang di sekitarmu."'
+    ],
+    en: [
+      '"The strength you chose might be something you have used for a long time, just never named as a strength before."',
+      '"Being an everyday hero is rarely about grand gestures, more about consistently choosing the small right thing."',
+      '"What you consider ordinary about yourself might be exactly what the people around you need most."'
+    ]
+  },
+  'Personality': {
+    id: [
+      '"Realita yang kamu pilih tadi menunjukkan bagian mana dari hidupmu yang sedang minta lebih banyak perhatian."',
+      '"Cara kamu menjawab tadi bisa jadi cerminan bagaimana kamu biasa menghadapi situasi serupa di keseharian."',
+      '"Tidak semua realita perlu diubah sekaligus. Menyadari satu hal kecil dulu sudah cukup jadi awal."'
+    ],
+    en: [
+      '"The reality you chose points to which part of your life is quietly asking for more attention."',
+      '"The way you answered may reflect how you usually respond to similar situations in everyday life."',
+      '"Not every reality needs to change all at once. Noticing one small thing first is already a start."'
+    ]
+  },
+  'Potentiality': {
+    id: [
+      '"Hal yang ingin kamu ubah tadi biasanya bukan hal acak. Itu sering jadi petunjuk arah yang sudah lama kamu pikirkan."',
+      '"Menjadi lebih baik tidak selalu berarti berubah total. Kadang cukup satu kebiasaan kecil yang dijaga konsisten."',
+      '"Potensi yang belum terpakai biasanya bukan hilang, hanya menunggu momen yang tepat untuk dipanggil lagi."'
+    ],
+    en: [
+      '"What you wanted to change is rarely random. It is often a direction you have been quietly thinking about."',
+      '"Becoming better does not always mean a total change. Sometimes it just takes one small habit kept consistent."',
+      '"Unused potential is usually not gone, it is simply waiting for the right moment to be called on again."'
+    ]
+  }
+};
+let lastShownReflectionIndex = {};
+let currentReflectionIdx = 0;
+
+let lang = 'id';
+let currentTheme = 'Mindfulness';
+
+function applyLang(){
+  const dict = i18n[lang];
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const key = el.getAttribute('data-i18n');
+    if(dict[key] !== undefined) el.textContent = dict[key];
+  });
+  document.getElementById('reasonInput').placeholder = dict.reasonPlaceholder;
+  document.getElementById('langToggle').textContent = lang === 'id' ? 'EN' : 'ID';
+  document.getElementById('reflectQ').textContent = themeMeta[currentTheme].q[lang];
+  document.getElementById('reflectionText').textContent = reflectionVariations[currentTheme][lang][currentReflectionIdx];
+}
+
+function toggleLang(){
+  lang = lang === 'id' ? 'en' : 'id';
+  applyLang();
+}
+
+function go(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if(id==='draw'){
+    document.getElementById('cardInner').classList.remove('flipped');
+    document.getElementById('revealBlock').classList.remove('show');
+    document.querySelector('.tap-hint').style.display='block';
+  }
+}
+
+function pickTheme(name){
+  currentTheme = name;
+  document.getElementById('draw-heading').textContent = name;
+  document.getElementById('cardTag').textContent = name.toUpperCase();
+  document.getElementById('cardTitle').textContent = themeMeta[name].sub;
+
+  const options = photoUnsplashIds[name];
+  let idx = Math.floor(Math.random() * options.length);
+  if(options.length > 1 && idx === lastShownIndex[name]){
+    idx = (idx + 1) % options.length;
+  }
+  lastShownIndex[name] = idx;
+  document.getElementById('cardArt').innerHTML = `<img src="${ph(options[idx])}" alt="${name}" style="width:100%;height:100%;object-fit:cover;">`;
+
+  document.getElementById('reflectQ').textContent = themeMeta[name].q[lang];
+
+  const reflOptions = reflectionVariations[name].id;
+  let rIdx = Math.floor(Math.random() * reflOptions.length);
+  if(reflOptions.length > 1 && rIdx === lastShownReflectionIndex[name]){
+    rIdx = (rIdx + 1) % reflOptions.length;
+  }
+  lastShownReflectionIndex[name] = rIdx;
+  currentReflectionIdx = rIdx;
+  document.getElementById('reflectionText').textContent = reflectionVariations[name][lang][rIdx];
+
+  go('draw');
+}
+
+function flipCard(){
+  document.getElementById('cardInner').classList.add('flipped');
+  document.querySelector('.tap-hint').style.display='none';
+  setTimeout(()=>{
+    document.getElementById('revealBlock').classList.add('show');
+  }, 500);
+}
+
+applyLang();
+</script>
+
+</body>
+</html>
